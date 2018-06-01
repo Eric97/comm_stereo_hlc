@@ -1,0 +1,13 @@
+*~
+bin
+build
+lib
+msg_gen
+srv_gen
+.DS_Store
+.svn
+*.pyc
+*.py
+*.o
+*.a
+*.so
