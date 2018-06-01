@@ -30,7 +30,7 @@ bool UdpLink::init()
   fd_ = socket(AF_INET, SOCK_DGRAM, 0);
   if (fd_ == -1)
   {
-    printf("[UdpLink] create socket failed: %s\n", strerror(errno));
+    ROS_INFO("[UdpLink] create socket failed: %s\n", strerror(errno));
     return false;
   }
 
@@ -44,9 +44,9 @@ bool UdpLink::init()
   addr.sin_port = htons(param_udp_port_);
   memset(addr.sin_zero, 0, sizeof(addr.sin_zero));
 
-  if (bind(fd_, (sockaddr*)&addr, sizeof(addr)) == -1)
+  if (bind(fd_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == -1)
   {
-    printf("[UdpLink] bind failed: %s\n", strerror(errno));
+    ROS_INFO("[UdpLink] bind failed: %s\n", strerror(errno));
     return false;
   }
 
@@ -60,15 +60,15 @@ void UdpLink::mainLoop()
   unsigned int len_from = sizeof(from);
 
   char buffer[2048];
-  int nrcv = recvfrom(fd_, buffer, 1288, 0, (sockaddr*)&from, &len_from);
+  int nrcv = recvfrom(fd_, buffer, 1288, 0, reinterpret_cast<sockaddr*>(&from), &len_from);
   if (nrcv == -1)
   {
-    printf("[UdpLink] recvfrom failed: %s\n", strerror(errno));
+    ROS_INFO("[UdpLink] recvfrom failed: %s\n", strerror(errno));
     return;
   }
   else
   {
-    printf("[UdpLink] recvfrom %d bytes\n", nrcv);
+	ROS_INFO("[UdpLink] recvfrom %d bytes\n", nrcv);
   }
 
   // Process the data

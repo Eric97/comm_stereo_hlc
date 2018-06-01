@@ -8,6 +8,7 @@
 #ifndef COMM_STEREO_HLC_SRC_UDPLINK_H_
 #define COMM_STEREO_HLC_SRC_UDPLINK_H_
 
+#include <string>
 #include <ros/ros.h>
 
 class UdpLink

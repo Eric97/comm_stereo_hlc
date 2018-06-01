@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  roslint
 )
 
 SET(CMAKE_BUILD_TYPE Debug)
@@ -158,6 +159,15 @@ add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_generate_messages_cpp)
  target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
  )
+
+## Roslint
+FILE(GLOB_RECURSE ${PROJECT_NAME}_LINT_SRCS
+  RELATIVE ${PROJECT_SOURCE_DIR}
+  src/*
+  include/${PROJECT_NAME}/
+)
+roslint_cpp(${${PROJECT_NAME}_LINT_SRCS})
+roslint_add_test()
 
 #############
 ## Install ##
