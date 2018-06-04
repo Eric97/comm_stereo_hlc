@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+ <node respawn="false" pkg="comm_stereo_hlc"
+	type="stereo_sim_node"
+	name="comm_stereo_sim"
+	output="screen">
+ 	<!-- configuration for the comm_stereo_hlc -->
+ 	<param name="udp_port" type="int" value="1454" />
+	<param name="upd_ip" type="string" value="192.168.0.107" />
+ </node>
+</launch>
