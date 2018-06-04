@@ -13,7 +13,11 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
   roslint
+  image_transport
+  cv_bridge
 )
+
+find_package(OpenCV REQUIRED)
 
 SET(CMAKE_BUILD_TYPE Debug)
 ## System dependencies are found with CMake's conventions
@@ -124,9 +128,14 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/comm_uav_pixhawk.cpp
-# )
+add_library(${PROJECT_NAME}
+   src/UdpLink.cpp
+   src/UdpLink.h
+)
+
+target_link_libraries(${PROJECT_NAME}
+	${catkin_LIBRARIES}
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -137,12 +146,17 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-set(SRCS_CMMUAV 
-    src/comm_stereo_hlc_main.cpp
-    src/UdpLink.cpp
-    src/UdpLink.h
-)  
-add_executable(${PROJECT_NAME}_node ${SRCS_CMMUAV})
+#set(SRCS_CMMUAV 
+#    src/comm_stereo_hlc_main.cpp
+#    src/UdpLink.cpp
+#    src/UdpLink.h
+#)  
+add_executable(${PROJECT_NAME}_node src/comm_stereo_hlc_main.cpp)
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
+
+## Stereo_sim node
+add_executable(stereo_sim_node src/stereo_sim/stereo_sim_main.cpp)
+target_link_libraries(stereo_sim_node ${PROJECT_NAME})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

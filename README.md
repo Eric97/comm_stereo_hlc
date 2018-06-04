@@ -20,6 +20,7 @@ catkin_make
 
 #### Published topics
 
+`~left_image` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
 
 ## Authors
 

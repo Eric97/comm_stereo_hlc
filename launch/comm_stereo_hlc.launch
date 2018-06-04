@@ -6,6 +6,6 @@
 	output="screen">
  	<!-- configuration for the comm_stereo_hlc -->
  	<param name="udp_port" type="int" value="1455" />
-	<param name="upd_ip" type="string" value="192.168.0.103" />
+	<param name="upd_ip" type="string" value="192.168.0.3" />
  </node>
 </launch>
