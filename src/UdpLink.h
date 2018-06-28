@@ -22,7 +22,8 @@ public:
   static const unsigned int STEREO_IMAGE_LEN = 1288;
 
 private:
-  int fd_;  ///< Socket descriptor
+  int fd_;          ///< Socket descriptor
+  fd_set readfds_;  ///< File descriptor
 
   // Parameters
   int param_udp_port_;            //!< UDP port address to receive data from stereo board
@@ -31,8 +32,8 @@ private:
   cv::Mat mat_left_img_, mat_right_img_;  //!< Left and right images in OpenCV format
 
   ros::NodeHandle node_;
-  //ros::Publisher left_img_pub_;	//!< Left image topic publisher
-  image_transport::Publisher left_img_pub_;  //!< Left image topic publisher
+  // ros::Publisher left_img_pub_;	//!< Left image topic publisher
+  image_transport::Publisher left_img_pub_, right_img_pub_;  //!< Left and right image topic publisher
 
 public:
   bool init();

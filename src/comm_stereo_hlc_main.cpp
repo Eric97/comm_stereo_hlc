@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "comm_stereo_hlc");
   ros::NodeHandle nh("~");
-  ros::Rate loop_rate(20);
+  ros::Rate loop_rate(100);
 
   ROS_INFO("comm_stereo_hlc start\n");
 
@@ -30,8 +30,9 @@ int main(int argc, char* argv[])
   {
     udplink.mainLoop();
 
+    //        ros::spinOnce();
+    //        loop_rate.sleep();
     //    ros::spinOnce();
-    //    loop_rate.sleep();
-    ros::spinOnce();
+    //    usleep(2);
   }
 }
