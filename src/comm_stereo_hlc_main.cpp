@@ -30,8 +30,8 @@ int main(int argc, char* argv[])
   {
     udplink.mainLoop();
 
-    //        ros::spinOnce();
-    //        loop_rate.sleep();
+    ros::spinOnce();
+    //            loop_rate.sleep();
     //    ros::spinOnce();
     //    usleep(2);
   }

@@ -125,6 +125,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS} 
 )
 
 ## Declare a C++ library
@@ -135,6 +136,7 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	${catkin_LIBRARIES}
+	${OpenCV_LIBRARIES}
 )
 
 ## Add cmake target dependencies of the library
