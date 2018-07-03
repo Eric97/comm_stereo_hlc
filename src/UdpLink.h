@@ -24,12 +24,8 @@ public:
   struct FEATURE_POINT
   {
     int16_t x1, y1;
-    int16_t x2, y2;
-    int16_t x3, y3;
-    int16_t x4, y4;
 
-    FEATURE_POINT(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, int16_t x4, int16_t y4)
-      : x1(x1), y1(y1), x2(x2), y2(y2), x3(x3), y3(y3), x4(x4), y4(y4)
+    FEATURE_POINT(int16_t x1, int16_t y1) : x1(x1), y1(y1)
     {
     }
   };
@@ -51,8 +47,8 @@ private:
 
   ros::NodeHandle node_;
   // ros::Publisher left_img_pub_;	//!< Left image topic publisher
-  image_transport::Publisher left_img_pub_, right_img_pub_,
-      left_img_out_pub_;  //!< Left and right image topic publisher
+  image_transport::Publisher left_img_pub_, right_img_pub_, left_img_out_pub_,
+      right_img_out_pub_;  //!< Left and right image topic publisher
 
 public:
   bool init();
