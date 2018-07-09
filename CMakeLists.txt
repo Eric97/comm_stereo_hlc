@@ -54,11 +54,12 @@ SET(CMAKE_BUILD_TYPE Debug)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   DIRECTORY
-#   msg
-#   FILES
-# )
+add_message_files(
+  DIRECTORY
+  msg
+  FILES
+  FeaturePoints.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -110,9 +111,9 @@ SET(CMAKE_BUILD_TYPE Debug)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES comm_uav_pixhawk
-  CATKIN_DEPENDS roscpp rospy std_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -129,22 +130,22 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME}
-   src/UdpLink.cpp
-   src/UdpLink.h
-)
+#add_library(${PROJECT_NAME}
+#   src/UdpLink.cpp
+#   src/UdpLink.h
+#)
 
-target_link_libraries(${PROJECT_NAME}
-	${catkin_LIBRARIES}
-	${OpenCV_LIBRARIES}
-)
+#target_link_libraries(${PROJECT_NAME}
+#	${catkin_LIBRARIES}
+#	${OpenCV_LIBRARIES}
+#)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
- 
+
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
@@ -153,12 +154,20 @@ target_link_libraries(${PROJECT_NAME}
 #    src/UdpLink.cpp
 #    src/UdpLink.h
 #)  
-add_executable(${PROJECT_NAME}_node src/comm_stereo_hlc_main.cpp)
-target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
+
+add_executable(${PROJECT_NAME}_node 
+  src/comm_stereo_hlc_main.cpp
+  src/UdpLink.cpp
+  src/UdpLink.h
+)
+
+add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_generate_messages_cpp)
+
+#target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
 
 ## Stereo_sim node
-add_executable(stereo_sim_node src/stereo_sim/stereo_sim_main.cpp)
-target_link_libraries(stereo_sim_node ${PROJECT_NAME})
+#add_executable(stereo_sim_node src/stereo_sim/stereo_sim_main.cpp)
+#target_link_libraries(stereo_sim_node ${PROJECT_NAME})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -169,12 +178,12 @@ target_link_libraries(stereo_sim_node ${PROJECT_NAME})
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_generate_messages_cpp)
+#add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}_node
-   ${catkin_LIBRARIES}
- )
+target_link_libraries(${PROJECT_NAME}_node
+  ${catkin_LIBRARIES}
+)
 
 ## Roslint
 FILE(GLOB_RECURSE ${PROJECT_NAME}_LINT_SRCS

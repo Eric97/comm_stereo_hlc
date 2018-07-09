@@ -50,6 +50,8 @@ private:
   image_transport::Publisher left_img_pub_, right_img_pub_, left_img_out_pub_,
       right_img_out_pub_;  //!< Left and right image topic publisher
 
+  ros::Publisher feature_pub_1_, feature_pub_2_, feature_pub_3_, feature_pub_4_;
+
 public:
   bool init();
   void mainLoop();

@@ -17,6 +17,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include "comm_stereo_hlc/FeaturePoints.h"
 
 #include "UdpLink.h"
 
@@ -38,6 +39,11 @@ UdpLink::UdpLink() : fd_(-1), feature_num_(0)
   right_img_pub_ = it2.advertise("right_image", 1);
   left_img_out_pub_ = it.advertise("left_out_image", 1);
   right_img_out_pub_ = it.advertise("right_out_image", 1);
+
+  feature_pub_1_ = private_nh.advertise<comm_stereo_hlc::FeaturePoints>("feature_1", 10);
+  feature_pub_2_ = private_nh.advertise<comm_stereo_hlc::FeaturePoints>("feature_2", 10);
+  feature_pub_3_ = private_nh.advertise<comm_stereo_hlc::FeaturePoints>("feature_3", 10);
+  feature_pub_4_ = private_nh.advertise<comm_stereo_hlc::FeaturePoints>("feature_4", 10);
 }
 
 UdpLink::~UdpLink()
@@ -118,6 +124,9 @@ void UdpLink::processData(unsigned int len, char* buffer)
 {
   static unsigned int index = 0, index_r = 0;
   static bool flag_left = false, flag_right = false;
+
+  comm_stereo_hlc::FeaturePoints feature_msg;
+
   if (len == STEREO_IMAGE_LEN)
   {
     // Decode left image first (buffer[1281] = 1)
@@ -198,12 +207,13 @@ void UdpLink::processData(unsigned int len, char* buffer)
     }
     else if ((unsigned char)buffer[1281] == 3 && (unsigned char)buffer[1280] == 1)
     {
-      // Decode feature points for previous left image
+      // Decode feature points for previous left image - feature_1
       feature_num_ = (uint8_t&)buffer[1282];
       ROS_INFO("Feature points %d\n", feature_num_);
       if (feature_num_ <= 255)
       {
         memcpy(feature_pnts_arry_, (unsigned char*)buffer, sizeof(FEATURE_POINT) * feature_num_);
+        feature_msg.num = feature_num_;
       }
       else
       {
@@ -215,16 +225,18 @@ void UdpLink::processData(unsigned int len, char* buffer)
       for (unsigned int i = 0; i < feature_num_; i++)
       {
         feature_pnts_vec_.push_back(FEATURE_POINT(*p_feature, *(p_feature + 1)));
+        feature_msg.datax.push_back(*p_feature);
+        feature_msg.datay.push_back(*(p_feature + 1));
         p_feature += 2;
       }
 
       //            displayFeaturePoints();
 
+      // Publish feature_1 topic
+      feature_pub_1_.publish(feature_msg);
+
       // Display feature points on stereo images
       // Draw on left previous
-      std::vector<cv::KeyPoint> keypoints_1;
-      cv::Mat mat_out_img = cv::Mat(480, 640, CV_8UC1);
-
       for (std::vector<FEATURE_POINT>::iterator it = feature_pnts_vec_.begin(); it != feature_pnts_vec_.end(); it++)
       {
         cv::drawMarker(mat_left_img_, cv::Point(it->x1, it->y1), cv::Scalar(255, 0, 255), cv::MARKER_CROSS);
@@ -245,6 +257,7 @@ void UdpLink::processData(unsigned int len, char* buffer)
       if (feature_num_ <= 255)
       {
         memcpy(feature_pnts_arry_, (unsigned char*)buffer, sizeof(FEATURE_POINT) * feature_num_);
+        feature_msg.num = feature_num_;
       }
       else
       {
@@ -256,10 +269,15 @@ void UdpLink::processData(unsigned int len, char* buffer)
       for (unsigned int i = 0; i < feature_num_; i++)
       {
         feature_pnts_vec_.push_back(FEATURE_POINT(*p_feature, *(p_feature + 1)));
+        feature_msg.datax.push_back(*p_feature);
+        feature_msg.datay.push_back(*(p_feature + 1));
         p_feature += 2;
       }
 
       //            displayFeaturePoints();
+
+      // Publish feature_2 topic
+      feature_pub_2_.publish(feature_msg);
 
       // Display feature points on stereo images
       // Draw on left previous
@@ -270,6 +288,72 @@ void UdpLink::processData(unsigned int len, char* buffer)
 
       sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", mat_right_img_).toImageMsg();
       right_img_out_pub_.publish(msg);
+
+      // Clear the feature points
+      feature_pnts_vec_.clear();
+    }
+    else if ((unsigned char)buffer[1281] == 3 && (unsigned char)buffer[1280] == 3)
+    {
+      // Decode feature points for current right image
+      feature_num_ = (uint8_t&)buffer[1282];
+      ROS_INFO("Feature points %d\n", feature_num_);
+      if (feature_num_ <= 255)
+      {
+        memcpy(feature_pnts_arry_, (unsigned char*)buffer, sizeof(FEATURE_POINT) * feature_num_);
+        feature_msg.num = feature_num_;
+      }
+      else
+      {
+        ROS_INFO("Incorrect number of feature points.\n");
+        return;
+      }
+
+      int16_t* p_feature = feature_pnts_arry_;
+      for (unsigned int i = 0; i < feature_num_; i++)
+      {
+        feature_pnts_vec_.push_back(FEATURE_POINT(*p_feature, *(p_feature + 1)));
+        feature_msg.datax.push_back(*p_feature);
+        feature_msg.datay.push_back(*(p_feature + 1));
+        p_feature += 2;
+      }
+
+      //            displayFeaturePoints();
+
+      // Publish feature_3 topic
+      feature_pub_3_.publish(feature_msg);
+
+      // Clear the feature points
+      feature_pnts_vec_.clear();
+    }
+    else if ((unsigned char)buffer[1281] == 3 && (unsigned char)buffer[1280] == 4)
+    {
+      // Decode feature points for current left image
+      feature_num_ = (uint8_t&)buffer[1282];
+      ROS_INFO("Feature points %d\n", feature_num_);
+      if (feature_num_ <= 255)
+      {
+        memcpy(feature_pnts_arry_, (unsigned char*)buffer, sizeof(FEATURE_POINT) * feature_num_);
+        feature_msg.num = feature_num_;
+      }
+      else
+      {
+        ROS_INFO("Incorrect number of feature points.\n");
+        return;
+      }
+
+      int16_t* p_feature = feature_pnts_arry_;
+      for (unsigned int i = 0; i < feature_num_; i++)
+      {
+        feature_pnts_vec_.push_back(FEATURE_POINT(*p_feature, *(p_feature + 1)));
+        feature_msg.datax.push_back(*p_feature);
+        feature_msg.datay.push_back(*(p_feature + 1));
+        p_feature += 2;
+      }
+
+      //            displayFeaturePoints();
+
+      // Publish feature_4 topic
+      feature_pub_4_.publish(feature_msg);
 
       // Clear the feature points
       feature_pnts_vec_.clear();
