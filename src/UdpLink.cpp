@@ -24,7 +24,7 @@
 static unsigned char imgBuf[307200] = { 0 };
 static unsigned char imgBuf_r[307200] = { 0 };
 
-UdpLink::UdpLink() : fd_(-1), feature_num_(0)
+UdpLink::UdpLink() : fd_(-1), feature_num_(0), seq_num_(0)
 {
   ros::NodeHandle private_nh("~");
   private_nh.getParam("udp_port", param_udp_port_);
@@ -35,10 +35,10 @@ UdpLink::UdpLink() : fd_(-1), feature_num_(0)
 
   image_transport::ImageTransport it(private_nh);
   image_transport::ImageTransport it2(private_nh);
-  left_img_pub_ = it.advertise("left_image", 1);
-  right_img_pub_ = it2.advertise("right_image", 1);
-  left_img_out_pub_ = it.advertise("left_out_image", 1);
-  right_img_out_pub_ = it.advertise("right_out_image", 1);
+  left_img_pub_ = it.advertise("left/image_raw", 1);
+  right_img_pub_ = it2.advertise("right/image_raw", 1);
+  left_img_out_pub_ = it.advertise("left_out/image_raw", 1);
+  right_img_out_pub_ = it.advertise("right_out/image_raw", 1);
 
   feature_pub_1_ = private_nh.advertise<comm_stereo_hlc::FeaturePoints>("feature_1", 10);
   feature_pub_2_ = private_nh.advertise<comm_stereo_hlc::FeaturePoints>("feature_2", 10);
@@ -61,7 +61,7 @@ bool UdpLink::init()
   }
 
   // Set the socket file descriptor to non-blocking
-  fcntl(fd_, F_SETFL, O_NONBLOCK);
+//  fcntl(fd_, F_SETFL, O_NONBLOCK);
 
   // Bind to the socket with IP and port
   sockaddr_in addr;
@@ -135,12 +135,21 @@ void UdpLink::processData(unsigned int len, char* buffer)
       if ((unsigned char)buffer[1280] == 0xAA)
       {
         flag_left = true;
-        ROS_INFO("Start of left stereo image data.\n");
         memcpy(imgBuf + index * 1280, buffer, 1280);
         index++;
+
+        seq_num_ = (uint16_t &)buffer[1283];
+        ROS_INFO("Start of left stereo image data, seq %d.\n", seq_num_);
       }
       else if ((unsigned char)buffer[1280] == 0x00 /*&& flag_left*/)
       {
+        unsigned int seq_num = (uint16_t &)buffer[1283];
+        if (seq_num != seq_num_)
+        {
+          ROS_INFO("Seq num mismatch in left image 0x00.\n");
+          return;
+        }
+
         if (index <= 239)
         {
           memcpy(imgBuf + index * 1280, buffer, 1280);
@@ -155,6 +164,13 @@ void UdpLink::processData(unsigned int len, char* buffer)
       }
       else if ((unsigned char)buffer[1280] == 0xBB /*&& flag_left /*&& ((uint8_t &)buffer[1282] == 239)*/)
       {
+        unsigned int seq_num = (uint16_t &)buffer[1283];
+        if (seq_num != seq_num_)
+        {
+          ROS_INFO("Seq num mismatch in left image 0xBB.\n");
+          return;
+        }
+
         ROS_INFO("End of this left frame image data, index %d\n", index);
         memcpy(imgBuf + index * 1280, buffer, 1280);
         mat_left_img_.data = imgBuf;
@@ -172,6 +188,13 @@ void UdpLink::processData(unsigned int len, char* buffer)
       //      index_r = (uint8_t &)buffer[1282];
       if ((unsigned char)buffer[1280] == 0xAA)
       {
+        unsigned int seq_num = (uint16_t &)buffer[1283];
+        if (seq_num != seq_num_)
+        {
+          ROS_INFO("Seq num mismatch in right image 0xAA.\n");
+          return;
+        }
+
         flag_right = true;
         ROS_INFO("Start of right stereo image data.\n");
         memcpy(imgBuf_r + index_r * 1280, buffer, 1280);
@@ -179,6 +202,13 @@ void UdpLink::processData(unsigned int len, char* buffer)
       }
       else if ((unsigned char)buffer[1280] == 0x00 /*&& flag_right*/)
       {
+        unsigned int seq_num = (uint16_t &)buffer[1283];
+        if (seq_num != seq_num_)
+        {
+          ROS_INFO("Seq num mismatch in right image 0x00.\n");
+          return;
+        }
+
         if (index_r <= 239)
         {
           memcpy(imgBuf_r + index_r * 1280, buffer, 1280);
@@ -193,6 +223,13 @@ void UdpLink::processData(unsigned int len, char* buffer)
       }
       else if ((unsigned char)buffer[1280] == 0xBB /*&& flag_right /*&& ((unsigned char)buffer[1282] == 239)*/)
       {
+        unsigned int seq_num = (uint16_t &)buffer[1283];
+        if (seq_num != seq_num_)
+        {
+          ROS_INFO("Seq num mismatch in right image 0xBB.\n");
+          return;
+        }
+
         ROS_INFO("End of this right frame image data, index %d\n", index_r);
         memcpy(imgBuf_r + index_r * 1280, buffer, 1280);
         mat_right_img_.data = imgBuf_r;
@@ -207,6 +244,13 @@ void UdpLink::processData(unsigned int len, char* buffer)
     }
     else if ((unsigned char)buffer[1281] == 3 && (unsigned char)buffer[1280] == 1)
     {
+      unsigned int seq_num = (uint16_t &)buffer[1284];
+      if (seq_num != seq_num_)
+      {
+        ROS_INFO("Seq num mismatch in feature1, %d.\n", seq_num);
+        return;
+      }
+
       // Decode feature points for previous left image - feature_1
       feature_num_ = (uint8_t&)buffer[1282];
       ROS_INFO("Feature points %d\n", feature_num_);
@@ -230,7 +274,7 @@ void UdpLink::processData(unsigned int len, char* buffer)
         p_feature += 2;
       }
 
-      //            displayFeaturePoints();
+//                  displayFeaturePoints();
 
       // Publish feature_1 topic
       feature_pub_1_.publish(feature_msg);
@@ -251,6 +295,13 @@ void UdpLink::processData(unsigned int len, char* buffer)
 
     else if ((unsigned char)buffer[1281] == 3 && (unsigned char)buffer[1280] == 2)
     {
+      unsigned int seq_num = (uint16_t &)buffer[1284];
+      if (seq_num != seq_num_)
+      {
+        ROS_INFO("Seq num mismatch in feature2, %d.\n", seq_num);
+        return;
+      }
+
       // Decode feature points for previous right image
       feature_num_ = (uint8_t&)buffer[1282];
       ROS_INFO("Feature points %d\n", feature_num_);
@@ -294,6 +345,13 @@ void UdpLink::processData(unsigned int len, char* buffer)
     }
     else if ((unsigned char)buffer[1281] == 3 && (unsigned char)buffer[1280] == 3)
     {
+      unsigned int seq_num = (uint16_t &)buffer[1284];
+      if (seq_num != seq_num_)
+      {
+        ROS_INFO("Seq num mismatch in feature3, %d.\n", seq_num);
+        return;
+      }
+
       // Decode feature points for current right image
       feature_num_ = (uint8_t&)buffer[1282];
       ROS_INFO("Feature points %d\n", feature_num_);
@@ -327,6 +385,13 @@ void UdpLink::processData(unsigned int len, char* buffer)
     }
     else if ((unsigned char)buffer[1281] == 3 && (unsigned char)buffer[1280] == 4)
     {
+      unsigned int seq_num = (uint16_t &)buffer[1284];
+      if (seq_num != seq_num_)
+      {
+        ROS_INFO("Seq num mismatch in feature4, %d.\n", seq_num);
+        return;
+      }
+
       // Decode feature points for current left image
       feature_num_ = (uint8_t&)buffer[1282];
       ROS_INFO("Feature points %d\n", feature_num_);

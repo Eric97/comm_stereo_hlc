@@ -38,6 +38,7 @@ private:
   int param_udp_port_;            //!< UDP port address to receive data from stereo board
   std::string param_udp_ipaddr_;  //!< IP address to receive data from stereo board
 
+  uint16_t seq_num_; //!< Sequence number decoded for current set: left, right, feature1, feature2, feature4, feature3
   cv::Mat mat_left_img_, mat_right_img_;  //!< Left and right images in OpenCV format
 
   unsigned int feature_num_;         //!< Number of feature points sent from Zynq
