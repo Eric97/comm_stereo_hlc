@@ -20,8 +20,12 @@ catkin_make
 
 #### Published topics
 
-`~left_image` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
-
+`/comm_stereo_hlc/left/image_raw` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
+`/comm_stereo_hlc/right/image_raw` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
+`/comm_stereo_hlc/adis16448/Imu` ([sensor_msgs/Imu](http://docs.ros.org/api/sensor_msgs/html/msg/Imu.html))
+`/comm_stereo_hlc/adis16448/Mag` ([sensor_msgs/MagneticField](http://docs.ros.org/api/sensor_msgs/html/msg/MagneticField.html))
+`/comm_stereo_hlc/adis16448/Pressure` ([sensor_msgs/FluidPressure](http://docs.ros.org/api/sensor_msgs/html/msg/FluidPressure.html))
+`/comm_stereo_hlc/adis16448/Temperature` ([sensor_msgs/Temperature](http://docs.ros.org/api/sensor_msgs/html/msg/Temperature.html))
 ## Authors
 
 * **Xiangxu Dong** - tsldngx@nus.edu.sg
